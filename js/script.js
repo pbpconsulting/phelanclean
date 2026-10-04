@@ -12,15 +12,4 @@ document.addEventListener('DOMContentLoaded', () => {
       toggle.setAttribute('aria-expanded', 'false');
     }));
   }
-
-  const form = document.querySelector('#quote-form');
-  const note = document.querySelector('#form-note');
-  if (form && note) {
-    form.addEventListener('submit', event => {
-      if (form.getAttribute('action') === '#') {
-        event.preventDefault();
-        note.textContent = 'The form is ready to connect to the existing Phelan email form technology.';
-      }
-    });
-  }
 });

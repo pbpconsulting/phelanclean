@@ -13,6 +13,95 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   }
 
+  const service = document.querySelector('#quote-service');
+  if (service) {
+    const conditionalFields = [
+      { field: '#gutter-guards-field', input: '#gutter-guards', services: ['Gutter cleaning', 'Mix of services'] },
+      { field: '#solar-panels-field', input: '#solar-panel-count', services: ['Solar cleaning', 'Mix of services'] }
+    ];
+    const updateServiceFields = () => {
+      const noPanels = document.querySelector('#solar-panels-none');
+      const panelCount = document.querySelector('#solar-panel-count');
+      if (noPanels && panelCount) {
+        const mixed = service.value === 'Mix of services';
+        noPanels.hidden = !mixed;
+        noPanels.disabled = !mixed;
+        if (!mixed && panelCount.value === 'None') panelCount.value = '';
+      }
+      conditionalFields.forEach(config => {
+        const field = document.querySelector(config.field);
+        const input = document.querySelector(config.input);
+        if (!field || !input) return;
+        const relevant = config.services.includes(service.value);
+        field.hidden = !relevant;
+        input.disabled = !relevant;
+        input.required = relevant;
+        if (!relevant) input.value = '';
+      });
+    };
+    service.addEventListener('change', updateServiceFields);
+    window.addEventListener('pageshow', updateServiceFields);
+    service.form.addEventListener('reset', () => setTimeout(updateServiceFields, 0));
+    updateServiceFields();
+  }
+
+  const quoteForm = document.querySelector('#quote-form');
+  if (quoteForm) {
+    const validators = {
+      name: value => value.length >= 2 && /\p{L}/u.test(value)
+        ? '' : 'Please enter your name.',
+      phone: value => {
+        if (!/^[+\d\s().-]+$/.test(value)) return 'Please enter a valid phone number, including the area or country code.';
+        const digits = value.replace(/\D/g, '');
+        const australian = /^(?:0[23478]\d{8}|61[23478]\d{8}|1[38]00\d{6}|13\d{4})$/.test(digits);
+        const international = /^\+(?!61)\d{8,15}$/.test(value.replace(/[\s().-]/g, ''));
+        return australian || international ? '' : 'Please enter a valid phone number, e.g. 0481 090 675 or +61 481 090 675.';
+      },
+      email: value => /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(value)
+        ? '' : 'Please enter a valid email address, e.g. name@example.com.',
+      address: value => value.length >= 8 && /\p{L}/u.test(value) && /\S+\s+\S+/.test(value)
+        ? '' : 'Please enter the property street address and suburb.'
+    };
+    const checks = Object.entries(validators).map(([name, validator]) => {
+      const input = quoteForm.elements.namedItem(name);
+      const error = document.createElement('span');
+      error.id = `quote-${name}-error`;
+      error.className = 'field-error';
+      error.setAttribute('aria-live', 'polite');
+      input.setAttribute('aria-describedby', error.id);
+      input.after(error);
+      let showError = false;
+      const validate = () => {
+        const message = validator(input.value.trim());
+        input.setCustomValidity(message);
+        if (showError) {
+          error.textContent = message;
+          input.setAttribute('aria-invalid', String(Boolean(message)));
+        }
+        return !message;
+      };
+      input.addEventListener('input', validate);
+      input.addEventListener('blur', () => { showError = true; validate(); });
+      input.addEventListener('invalid', () => { showError = true; validate(); });
+      window.addEventListener('pageshow', validate);
+      quoteForm.addEventListener('reset', () => {
+        showError = false;
+        error.textContent = '';
+        input.removeAttribute('aria-invalid');
+        setTimeout(validate, 0);
+      });
+      validate();
+      return validate;
+    });
+    quoteForm.addEventListener('submit', event => {
+      const valid = checks.map(validate => validate()).every(Boolean);
+      if (!valid) {
+        event.preventDefault();
+        quoteForm.reportValidity();
+      }
+    });
+  }
+
   const photos = document.querySelectorAll('main img');
   if (!photos.length) return;
 

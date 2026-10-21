@@ -4,10 +4,8 @@
 HTML + CSS + minimal vanilla JavaScript. No framework, database or CMS.
 
 ## Pages
-- index.html — Home
-- services.html — Services
+- index.html — Services (landing page)
 - pricing.html — Pricing
-- about.html — About
 - quote.html — Get a Quote
 
 ## Responsive
